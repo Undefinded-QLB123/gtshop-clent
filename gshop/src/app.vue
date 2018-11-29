@@ -8,10 +8,13 @@
 <script>
   import footerGuide from './components/FooterGuide/FooterGuide'
     export default {
-        name: "app",
-        components:{
-          footerGuide
-        }
+      name: "app",
+      components:{
+        footerGuide
+      },
+      mounted() {
+        this.$store.dispatch('getAddress')
+      }
     }
 </script>
 
