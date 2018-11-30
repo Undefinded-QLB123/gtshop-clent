@@ -18,7 +18,7 @@
               </button>
             </section>
             <section class="login_verification">
-              <input type="tel" maxlength="8" placeholder="验证码">
+              <input type="tel" maxlength="8" placeholder="验证码" v-model="code">
             </section>
             <section class="login_hint">
               温馨提示：未注册硅谷外卖帐号的手机号，登录时将自动注册，且代表已同意
@@ -28,22 +28,22 @@
           <div :class="{on:!loginWay}">
             <section>
               <section class="login_message">
-                <input type="tel" maxlength="11" placeholder="手机/邮箱/用户名">
+                <input type="tel" maxlength="11" placeholder="手机/邮箱/用户名" v-model="name">
               </section>
               <section class="login_verification">
-                <input type="tel" maxlength="8" placeholder="密码" :type="flagClose?'text':'password'">
+                <input type="tel" maxlength="8" v-model="pwd" placeholder="密码" :type="flagClose?'text':'password'">
                 <div class="switch_button"  @click="onOff" :class="{on:flagClose}">
                   <div class="switch_circle" :class="{right:flagClose}"></div>
                   <span class="switch_text">{{textContent}}</span>
                 </div>
               </section>
               <section class="login_message">
-                <input type="text" maxlength="11" placeholder="验证码">
-                <img class="get_verification" src="./images/captcha.svg" alt="captcha">
+                <input type="text" maxlength="11" placeholder="验证码" v-model="captcha">
+                <img ref="captcha" class="get_verification" src="http://localhost:5000/captcha" alt="captcha" @click="updateCaptcha">
               </section>
             </section>
           </div>
-          <button class="login_submit">登录</button>
+          <button class="login_submit" @click.prevent="login">登录</button>
         </form>
         <a href="javascript:;" class="about_us">关于我们</a>
       </div>
@@ -55,15 +55,21 @@
 </template>
 
 <script>
-    export default {
+  import {reqSendCode,reqSmsLogin,reqPwdLogin} from '../../api'
+  import {Toast,MessageBox} from 'mint-ui'
+  export default {
       name: "Login",
       data(){
         return{
-          loginWay:true,
-          phone:'',
-          computeTime:0,
-          textContent:'',
-          flagClose:false
+          loginWay:true,    //登录方式
+          computeTime:0,    //计时器
+          textContent:'',   //开关显示内容
+          flagClose:false,  //密码显示开关
+          name:'',      //手机/邮箱/用户名
+          pwd:'',       //登录密码
+          captcha:'',   //图形验证码
+          code:'',      //短信验证码
+          phone:''      //手机号码
         }
       },
       computed:{
@@ -72,14 +78,22 @@
         }
       },
       methods:{
-        sendCode(){
+        async sendCode(){
           this.computeTime = 30;
           const IntervalId = setInterval(()=>{
             this.computeTime--;
-            if (this.computeTime===0){
+            if (this.computeTime<=0){
               clearInterval(IntervalId)
             }
-          },1000)
+          },1000);
+          const result = await reqSendCode(this.phone);
+          console.log(result);
+          if (result===0){
+            Toast('验证码已发送');
+          }else {
+            this.computeTime=0;
+            MessageBox.alert('发送验证码失败')
+          }
         },
         onOff(){
           this.flagClose = !this.flagClose;
@@ -88,7 +102,50 @@
           }else{
             this.textContent = ''
           }
-        }
+        },
+        updateCaptcha(){
+          this.$refs.captcha.src='http://localhost:5000/captcha?time='+Date.now()
+        },
+        async login(){
+          const {name,pwd,captcha,phone,code,loginWay,isRightPhone} = this;
+          //手机登录方式
+          let result;
+          if(loginWay){//短信
+            if (!isRightPhone){
+              return MessageBox.alert('手机号不正确')
+            }else if (!/^\d{6}$/.test(code)) {
+              return MessageBox.alert('验证码必须是6位数字')
+            }
+            //手机登录成功发送登录请求
+            result = await reqSmsLogin(phone,code)
+            if (result!==0){//请求失败
+              this.computeTime=0;
+            }
+          }else{//账号登录
+            if (!name){
+              return MessageBox.alert('用户名必须指定')
+            }else if(!pwd){
+              return MessageBox.alert('密码必须指定')
+            }else if(captcha.length!==4){
+              return MessageBox.alert('验证码必须是4位')
+            }
+            //向后台发送登录请求
+            result = reqPwdLogin({name, pwd, captcha})
+            if (result!==0){
+              this.updateCaptcha()//更新验证码
+            }
+          }
+          if (result.code===0){//返回登录成功信息
+            const user = result.data;
+            //1.保存登录成功的用户数据
+            this.$store.dispatch('saveUser',user);
+            //2.登录成功后跳转到个人主页
+            this.$router.replace('./profile')
+          }else {
+            MessageBox.alert('登录请求失败')
+          }
+        },
+
       }
     }
 </script>

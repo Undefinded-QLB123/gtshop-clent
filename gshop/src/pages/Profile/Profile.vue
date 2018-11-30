@@ -8,12 +8,16 @@
             <i class="iconfont icon-person"></i>
           </div>
           <div class="user-info">
-            <p class="user-info-top">登录/注册</p>
-            <p>
+            <p class="user-info-top" v-if="!user.phone">
+              {{user.name?user.name:'登录/注册'}}
+            </p>
+            <p v-if="!user.name">
                 <span class="user-icon">
                   <i class="iconfont icon-shouji icon-mobile"></i>
                 </span>
-              <span class="icon-mobile-number">暂无绑定手机号</span>
+              <span class="icon-mobile-number">
+                {{user.phone ? user.phone : '暂无绑定手机号'}}
+              </span>
             </p>
           </div>
           <span class="arrow">
@@ -90,14 +94,38 @@
         </a>
       </section>
     </section>
+    <section>
+      <mt-button type="danger" style="width: 100%" @click="logout">
+        退出登录
+      </mt-button>
+    </section>
   </div>
 </template>
 
 <script>
   import topHeard from '../../components/TopHeard/TopHeard'
+  import {MessageBox} from 'mint-ui'
+  import {mapState} from 'vuex'
   export default {
     name: "Profile",
-    components:{topHeard}
+    components:{topHeard},
+    computed:{
+      ...mapState(['user'])
+    },
+    methods:{
+      logout(){
+        MessageBox.confirm('确定要退出吗?').then(
+          action => {
+            console.log('++++', action)
+            // 发送登出的请求
+            this.$store.dispatch('logout')
+          },
+          action => {
+            console.log('---', action)
+          },
+        )
+      }
+    }
   }
 </script>
 

@@ -1,13 +1,23 @@
 import {
   RECEIVE_ADDRESS,
   RECEIVE_SHOPS,
-  RECEIVE_CATEGORY
+  RECEIVE_CATEGORY,
+  RECEIVE_USER,
+  RECEIVE_INFO,
+  RECEIVE_GOODS,
+  RESET_USER,
+  RECEIVE_RATINGS
 } from './mutations-type'
 
 import {
   reqAddress,
   reqShops,
-  reqCategorys
+  reqCategorys,
+  reqUser,
+  reqLogout,
+  reqInfo,
+  reqRatings,
+  reqGoods
 } from '../api'
 
 export default {
@@ -37,5 +47,48 @@ export default {
       const categorys = result.data;
       commit(RECEIVE_CATEGORY,{categorys})
     }
-  }
+  },
+  saveUser({commit}, user) {
+    commit(RECEIVE_USER, {user})
+  },
+  //获取用户数据异步action
+  async getUser({commit}){
+    const result = await reqUser();
+    if (result.code===0){
+      const user = result.data;
+      commit(RECEIVE_USER,{user})
+    }
+  },
+  // 请求登出的异步action
+  async logout ({commit}) {
+    const result = await reqLogout()
+    if(result.code===0) {
+      commit(RESET_USER)
+    }
+  },
+  async getShopInfo({commit}) {
+    const result = await reqInfo();
+    if(result.code===0) {
+        const info = result.data;
+        info.score = 3.5;
+        commit(RECEIVE_INFO, {info})
+      }
+    },
+  async getShopGoods({commit}, callback) {
+    const result = await reqGoods();
+    if (result.code === 0) {
+      const goods = result.data;
+      commit(RECEIVE_GOODS, {goods});
+      // 更新状态数据之后调用传入的回调函数
+      typeof callback === 'function' && callback()
+    }
+  },
+  // 异步获取商家评价列表
+  async getShopRatings({commit}) {
+    const result = await reqRatings();
+    if (result.code === 0) {
+      const ratings = result.data
+      commit(RECEIVE_RATINGS, {ratings})
+    }
+  },
 }

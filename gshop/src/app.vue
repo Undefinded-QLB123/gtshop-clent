@@ -13,7 +13,10 @@
         footerGuide
       },
       mounted() {
+        //异步获取用户位置信息
         this.$store.dispatch('getAddress')
+        //异步获取当前用户信息
+        this.$store.dispatch('getUser')
       }
     }
 </script>
