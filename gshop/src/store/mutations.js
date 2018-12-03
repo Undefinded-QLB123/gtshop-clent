@@ -8,7 +8,8 @@ import {
   RECEIVE_RATINGS,
   RECEIVE_GOODS,
   DECREMENT_FOOD_COUNT,
-  INCREMENT_FOOD_COUNT
+  INCREMENT_FOOD_COUNT,
+  CLEAR_CART
 } from './mutations-type'
 import Vue from 'vue'
 export default {
@@ -43,6 +44,8 @@ export default {
     if (!food.count) {
       // food.count = 1
       Vue.set(food, 'count', 1) // 有数据绑定
+      //将food添加到购物车
+      state.cartFoods.push(food)
     } else {
       // 否则直接加1
       food.count++
@@ -51,8 +54,18 @@ export default {
 
   [DECREMENT_FOOD_COUNT](state, {food}) {
     if (food.count > 0) {
-      food.count--
+      food.count--;
+      // 减少为0, 从购物车删除此food
+      if (food.count === 0) {
+        state.cartFoods.splice(state.cartFoods.indexOf(food), 1)
+      }
     }
   },
-
+  [CLEAR_CART](state) {
+    // 将购物车中所有food的count置为0
+    state.cartFoods.forEach(food => food.count = 0)
+    // 清空购物车数组
+    state.cartFoods = []
+  },
+  
 }

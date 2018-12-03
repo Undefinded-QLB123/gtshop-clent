@@ -8,7 +8,8 @@ import {
   RESET_USER,
   RECEIVE_RATINGS,
   INCREMENT_FOOD_COUNT,
-  DECREMENT_FOOD_COUNT
+  DECREMENT_FOOD_COUNT,
+  CLEAR_CART
 } from './mutations-type'
 
 import {
@@ -86,11 +87,13 @@ export default {
     }
   },
   // 异步获取商家评价列表
-  async getShopRatings({commit}) {
+  async getShopRatings({commit}, callback) {
     const result = await reqRatings();
     if (result.code === 0) {
-      const ratings = result.data
-      commit(RECEIVE_RATINGS, {ratings})
+      const ratings = result.data;
+      commit(RECEIVE_RATINGS, {ratings});
+      // 更新状态数据之后调用传入的回调函数
+      typeof callback === 'function' && callback()
     }
   },
   updateFoodCount({commit}, {isAdd, food}) {
@@ -99,5 +102,9 @@ export default {
     } else {
       commit(DECREMENT_FOOD_COUNT, {food})
     }
+  },
+  // 清空购物车数据
+  clearCart({commit}) {
+    commit(CLEAR_CART)
   }
 }

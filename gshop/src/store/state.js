@@ -8,4 +8,5 @@ export default {
   info:{},    // 商家信息
   goods: [], // 商品列表
   ratings: [], // 商家评价列表
+  cartFoods: [], // 购物车中所有food的数组
 }

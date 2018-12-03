@@ -1,22 +1,22 @@
 <template>
   <div class="cartcontrol">
     <transition name="move">
-      <div class="iconfont icon-remove_circle_outline" v-if="food.count" @click="updateFoodCount(false)"></div>
+      <div class="iconfont icon-remove_circle_outline" v-if="food.count" @click.stop="updateFoodCount(false)"></div>
     </transition>
     <div class="cart-count" v-if="food.count">{{food.count}}</div>
-    <div class="iconfont icon-add_circle" @click="updateFoodCount(true)"></div>
+    <div class="iconfont icon-add_circle" @click.stop="updateFoodCount(true)"></div>
   </div>
 </template>
 
 <script>
   export default {
     name: "CartControl",
-    props:{
-      food:Object
+    props: {
+      food: Object
     },
-    methods:{
-      updateFoodCount(isAdd){
-        this.$store.dispatch('updateFoodCount',{isAdd,food:this.food})
+    methods: {
+      updateFoodCount(isAdd) {
+        this.$store.dispatch('updateFoodCount', {isAdd, food: this.food})
       }
     }
   }
@@ -40,11 +40,14 @@
       line-height 24px
       font-size 24px
       color $green
-      &.move-enter-active,&.move-leave-active
+
+      &.move-enter-active, &.move-leave-active
         transition all .3s
+
       &.move-enter, &.move-leave-to
         opacity 0
         transform translateX(20px) rotate(180deg)
+
     .cart-count
       display: inline-block
       vertical-align: top
